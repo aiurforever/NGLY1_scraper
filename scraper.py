@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from googlesearch import search
 from langdetect import detect
 
+
+
 # Define keywords and languages
 keywords = ["NGLY1 deficiency", "NGLY1 patients", "NGLY1 mutation"]
 languages = ["en", "es", "fr", "de"]  # English, Spanish, French, German
@@ -58,3 +60,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+import spacy
+
+# Load spaCy model
+nlp = spacy.load("en_core_web_sm")
+
+def analyze_text(text):
+    doc = nlp(text)
+    entities = [(ent.text, ent.label_) for ent in doc.ents]
+    return entities
+
+# Example usage
+if __name__ == "__main__":
+    text = "NGLY1 deficiency is a rare genetic disorder found in patients in the USA and Germany."
+    entities = analyze_text(text)
+    print("Extracted Entities:", entities)
+
