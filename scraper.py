@@ -10,22 +10,52 @@ import streamlit as st
 nlp = spacy.load("en_core_web_sm")
 
 def fetch_news_from_api(api_key, query, language="en", region="us"):
-    # ... (same as before) ...
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": query,
+        "language": language,
+        "region": region,
+        "apiKey": api_key,
+        "sortBy": "publishedAt",
+    }
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json()["articles"]
+    else:
+        st.error(f"Error fetching news: {response.status_code}")
+        return []
 
 def analyze_text(text):
-    # ... (same as before) ...
+    doc = nlp(text)
+    entities = [(ent.text, ent.label_) for ent in doc.ents]
+    return entities
 
 def run_cli_mode(api_key, query):
     # CLI mode: Run scraping/analysis without Streamlit
     articles = fetch_news_from_api(api_key, query)
     data = []
     for article in articles:
-        # ... (same as before) ...
-    df = pd.DataFrame(data)
+        title = article["title"]
+        url = article["url"]
+        date = datetime.strptime(article["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
+        content = article["content"]
+        entities = analyze_text(content)
+        countries = [ent[0] for ent in entities if ent[1] == "GPE"]
+        for country in countries:
+            data.append({"date": date, "country": country, "title": title, "url": url})
     
-    # Save the plot as an image
+    df = pd.DataFrame(data)
     plt.figure(figsize=(10, 6))
-    # ... (plotting logic) ...
+    for i, row in df.iterrows():
+        plt.scatter(row["date"], row["country"], label=row["title"])
+        plt.annotate(row["title"], (row["date"], row["country"]), textcoords="offset points", xytext=(0, 10), ha="center")
+    
+    plt.xlabel("Date")
+    plt.ylabel("Country")
+    plt.title("NGLY1 News Mentions")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
     plt.savefig("ngly1_news_plot.png")
     print("Plot saved to ngly1_news_plot.png")
 
@@ -37,12 +67,38 @@ def run_streamlit_mode():
     
     if api_key and query:
         articles = fetch_news_from_api(api_key, query)
-        # ... (display data/plot) ...
+        if articles:
+            st.success(f"Found {len(articles)} articles.")
+            data = []
+            for article in articles:
+                title = article["title"]
+                url = article["url"]
+                date = datetime.strptime(article["publishedAt"], "%Y-%m-%dT%H:%M:%SZ")
+                content = article["content"]
+                entities = analyze_text(content)
+                countries = [ent[0] for ent in entities if ent[1] == "GPE"]
+                for country in countries:
+                    data.append({"date": date, "country": country, "title": title, "url": url})
+            
+            df = pd.DataFrame(data)
+            st.dataframe(df)
+            plt.figure(figsize=(10, 6))
+            for i, row in df.iterrows():
+                plt.scatter(row["date"], row["country"], label=row["title"])
+                plt.annotate(row["title"], (row["date"], row["country"]), textcoords="offset points", xytext=(0, 10), ha="center")
+            
+            plt.xlabel("Date")
+            plt.ylabel("Country")
+            plt.title("NGLY1 News Mentions")
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            st.pyplot(plt.gcf())
+        else:
+            st.warning("No articles found.")
 
 if __name__ == "__main__":
     if "--cli" in sys.argv:
-        # Run in CLI mode (for GitHub Actions)
         run_cli_mode(api_key="your_api_key", query="NGLY1 deficiency")
     else:
-        # Run in Streamlit mode (for local/dev)
         run_streamlit_mode()
