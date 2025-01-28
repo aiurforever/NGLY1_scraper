@@ -20,6 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install numpy==1.23.5  # Install NumPy first
           pip install -r requirements.txt
 
       - name: Run web scraper
