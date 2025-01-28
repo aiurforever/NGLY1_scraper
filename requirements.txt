@@ -1,4 +1,5 @@
 requests
+numpy==1.23.5  # or another compatible version
 beautifulsoup4
 googlesearch-python
 langdetect
