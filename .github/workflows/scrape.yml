@@ -22,16 +22,17 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install spacy requests pandas
+          pip install beautifulsoup4 pandas requests
 
-      - name: Download spaCy Model
-        run: python -m spacy download en_core_web_sm
-
-      - name: Run web scraper with API key
-        env:
-          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+      - name: Run web scraper
         run: |
           python3 scraper.py --cli > scraper.log 2>&1 || (cat scraper.log && exit 1)
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ngly1_mentions
+          path: news_mentions.csv
 
       - name: Upload Debug Logs
         if: failure()
@@ -39,9 +40,3 @@ jobs:
         with:
           name: debug-logs
           path: scraper.log
-
-      - name: Upload results
-        uses: actions/upload-artifact@v4
-        with:
-          name: ngly1_mentions
-          path: news_mentions.csv
