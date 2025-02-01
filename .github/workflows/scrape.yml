@@ -3,7 +3,7 @@ name: Run NGLY1 Web Scraper
 on:
   schedule:
     - cron: '0 0 * * *'  # Daily at midnight UTC
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual execution
 
 jobs:
   scrape:
@@ -16,20 +16,27 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+          cache: 'pip'  # Cache dependencies
 
       - name: Install dependencies
         run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run scraper in CLI mode
         env:
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
-        run: python scraper.py --cli  # Use CLI mode
+        run: |
+          source venv/bin/activate
+          python scraper.py --cli > scraper.log 2>&1  # Save logs for debugging
 
       - name: Upload results
         uses: actions/upload-artifact@v3
         with:
           name: ngly1_mentions
           path: |
+            news_mentions.csv
             ngly1_news_plot.png
-            ngly1_mentions.txt
+            scraper.log  # Upload log for debugging failures
