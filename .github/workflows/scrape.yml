@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Latest version
+        uses: actions/checkout@v4  # Updated to latest version
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -20,17 +20,21 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Check API Key
+        run: |
+          if [ -z "${{ secrets.NEWSAPI_KEY }}" ]; then
+            echo "ERROR: NEWSAPI_KEY is missing!"
+            exit 1
+          fi
 
       - name: Run scraper in CLI mode
         env:
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
         run: |
-          source venv/bin/activate
-          python scraper.py --cli > scraper.log 2>&1  # Save logs for debugging
+          python3 scraper.py --cli > scraper.log 2>&1  # Save logs for debugging
 
       - name: Upload results
         uses: actions/upload-artifact@v4  # Updated version
