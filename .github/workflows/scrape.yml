@@ -10,37 +10,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Updated to latest version
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip'  # Cache dependencies
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install spacy requests pandas
 
-      - name: Check API Key
-        run: |
-          if [ -z "${{ secrets.NEWSAPI_KEY }}" ]; then
-            echo "ERROR: NEWSAPI_KEY is missing!"
-            exit 1
-          fi
+      - name: Download spaCy Model
+        run: python -m spacy download en_core_web_sm
 
-      - name: Run scraper in CLI mode
+      - name: Run web scraper with API key
         env:
           NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
         run: |
-          python3 scraper.py --cli > scraper.log 2>&1  # Save logs for debugging
+          python3 scraper.py --cli > scraper.log 2>&1 || (cat scraper.log && exit 1)
+
+      - name: Upload Debug Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs
+          path: scraper.log
 
       - name: Upload results
-        uses: actions/upload-artifact@v4  # Updated version
+        uses: actions/upload-artifact@v4
         with:
           name: ngly1_mentions
-          path: |
-            news_mentions.csv
-            ngly1_news_plot.png
-            scraper.log  # Upload log for debugging failures
+          path: news_mentions.csv
