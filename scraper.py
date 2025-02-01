@@ -1,82 +1,119 @@
-import os
 import requests
-import spacy
+from bs4 import BeautifulSoup
 import pandas as pd
+import streamlit as st
 import sys
 from datetime import datetime
+import time
+import random
 
-# Load spaCy model (handle missing model error)
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    print("spaCy model missing! Run: python -m spacy download en_core_web_sm")
-    sys.exit(1)
+# User-Agent to avoid blocking
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+}
 
-def fetch_news_from_api():
+# Google search URLs for different languages and countries
+SEARCH_QUERIES = [
+    ("en", "site:bbc.com OR site:cnn.com OR site:theguardian.com NGLY1"),  # English
+    ("es", "site:elpais.com OR site:clarin.com OR site:elmundo.es NGLY1"),  # Spanish
+    ("fr", "site:lemonde.fr OR site:lefigaro.fr OR site:liberation.fr NGLY1"),  # French
+    ("de", "site:spiegel.de OR site:zeit.de OR site:dw.com NGLY1"),  # German
+    ("zh", "site:news.sina.com.cn OR site:bbc.com/zhongwen OR site:udn.com NGLY1"),  # Chinese
+    ("ja", "site:asahi.com OR site:nhk.or.jp OR site:mainichi.jp NGLY1"),  # Japanese
+    ("it", "site:corriere.it OR site:repubblica.it OR site:ansa.it NGLY1"),  # Italian
+]
+
+GOOGLE_SEARCH_URL = "https://www.google.com/search?q={query}&hl={lang}&gl={country}&num=10"
+
+def fetch_news(query, lang):
     """
-    Fetch news articles using NewsAPI.
+    Searches Google for NGLY1 mentions in a specific language.
     """
-    api_key = os.getenv("NEWSAPI_KEY")  # Read API key from environment variable
+    search_url = GOOGLE_SEARCH_URL.format(query=query, lang=lang, country="US")
+    print(f"Searching: {search_url}")
 
-    if not api_key:
-        print("ERROR: NEWSAPI_KEY is missing! Set it in GitHub Secrets.")
-        sys.exit(1)  # Exit with error
+    response = requests.get(search_url, headers=HEADERS)
 
-    url = "https://newsapi.org/v2/everything"
-    params = {
-        "q": "NGLY1 deficiency",
-        "language": "en",
-        "sortBy": "publishedAt",
-        "apiKey": api_key
-    }
+    if response.status_code != 200:
+        print(f"Error: Unable to fetch results (Status Code: {response.status_code})")
+        return []
 
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        return response.json().get("articles", [])
-    
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching news: {e}")
-        sys.exit(1)
+    soup = BeautifulSoup(response.text, "html.parser")
+    results = []
 
-def process_articles(articles):
+    for result in soup.find_all("div", class_="tF2Cxc"):
+        title_tag = result.find("h3")
+        link_tag = result.find("a")
+
+        if title_tag and link_tag:
+            title = title_tag.text.strip()
+            link = link_tag["href"]
+            date = datetime.now().strftime("%Y-%m-%d")  # Use current date since Google search doesn't provide timestamps
+            results.append({"date": date, "title": title, "url": link, "language": lang})
+
+    return results
+
+def scrape_all():
     """
-    Extract relevant information from articles.
+    Scrapes news articles mentioning NGLY1 in multiple languages.
     """
-    data = []
-    for article in articles:
-        title = article.get("title", "No Title")
-        url = article.get("url", "#")
-        date = article.get("publishedAt", datetime.utcnow().isoformat())
+    all_results = []
 
+    for lang, query in SEARCH_QUERIES:
         try:
-            date = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            continue
+            results = fetch_news(query, lang)
+            all_results.extend(results)
+            time.sleep(random.uniform(2, 5))  # Random delay to avoid Google blocking
+        except Exception as e:
+            print(f"Error scraping {lang}: {e}")
 
-        data.append({"date": date, "title": title, "url": url})
+    return pd.DataFrame(all_results)
 
-    return pd.DataFrame(data)
+def save_to_csv(df, filename="news_mentions.csv"):
+    """
+    Save the scraped news data to a CSV file.
+    """
+    df.to_csv(filename, index=False)
+    print(f"✅ Data saved to {filename}")
 
 def run_cli_mode():
     """
-    Run the script in CLI mode.
+    Run the web scraper in CLI mode.
     """
-    try:
-        articles = fetch_news_from_api()
-        df = process_articles(articles)
+    df = scrape_all()
 
-        if df.empty:
-            print("No relevant data found.")
-            sys.exit(1)
+    if df.empty:
+        print("⚠ No news articles found.")
+        return
 
-        df.to_csv("news_mentions.csv", index=False)
-        print("Data saved to news_mentions.csv")
+    save_to_csv(df)
+    print(df)
 
-    except Exception as e:
-        print(f"Unexpected Error: {e}")
-        sys.exit(1)
+def run_streamlit_mode():
+    """
+    Run the scraper as a Streamlit web app.
+    """
+    st.title("NGLY1 Global News Scraper")
+    
+    df = scrape_all()
+
+    if df.empty:
+        st.warning("No articles found.")
+        return
+
+    st.success(f"Found {len(df)} relevant articles.")
+    st.dataframe(df)
+
+    # Save CSV file
+    csv_filename = "news_mentions.csv"
+    save_to_csv(df, csv_filename)
+
+    # Provide CSV download link
+    with open(csv_filename, "rb") as f:
+        st.download_button("Download CSV", f, file_name=csv_filename, mime="text/csv")
 
 if __name__ == "__main__":
     if "--cli" in sys.argv:
         run_cli_mode()
+    else:
+        run_streamlit_mode()
