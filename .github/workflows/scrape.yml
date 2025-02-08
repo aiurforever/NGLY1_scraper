@@ -24,6 +24,7 @@ jobs:
           pip install --upgrade pip
           # Ensure your requirements.txt includes beautifulsoup4, pandas, and requests
           pip install -r requirements.txt
+          pip install openpyxl
 
       - name: Run Web Scraper
         run: |
