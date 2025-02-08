@@ -35,16 +35,16 @@ jobs:
         
       - name: Verify Output File
         run: |
-          if [ ! -f "news_mentions.csv" ]; then
-            echo "❌ ERROR: news_mentions.csv not found!"
+          if [ ! -f "ngly1_medical_publications_links.xlsx" ]; then
+            echo "❌ ERROR: ngly1_medical_publications_links.xlsx not found!"
             exit 1
           fi
 
       - name: Upload Results
         uses: actions/upload-artifact@v4
         with:
-          name: ngly1_mentions
-          path: news_mentions.csv
+          name: ngly1_medical_publications_links
+          path: ngly1_medical_publications_links.xlsx
 
       - name: Upload Debug Logs
         uses: actions/upload-artifact@v4
