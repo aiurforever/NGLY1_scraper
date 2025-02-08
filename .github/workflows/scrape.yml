@@ -30,6 +30,9 @@ jobs:
         run: |
           python scraper.py --cli > scraper.log 2>&1 || (cat scraper.log && exit 1)
 
+      - name: List Files in Directory
+        run: ls -al
+        
       - name: Verify Output File
         run: |
           if [ ! -f "news_mentions.csv" ]; then
