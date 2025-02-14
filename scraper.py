@@ -6,162 +6,38 @@ import urllib.parse
 # Define the keyword to search for
 keyword = "NGLY1"
 
-# Curated dictionary of medical publication websites by region.
-# NOTE: The URLs below are examples and placeholders. Replace these with the actual top 20 medical websites for each region.
+# Curated dictionary of 20 medical websites, grouped by region.
+# Replace these URLs if needed with the most current sites.
 medical_publication_websites = {
     "US": [
-        "https://www.nejm.org",                # New England Journal of Medicine
-        "https://jamanetwork.com",             # JAMA Network
-        "https://www.medscape.com",             # Medscape
-        "https://www.lancet.com",               # The Lancet (US version/affiliate if available)
-        "https://www.bmj.com",                  # BMJ (even though UK-based, often cited in US research)
-        "https://www.acpjournals.org",          # ACP Journals
-        "https://www.aappublications.org",      # AAP Publications
-        "https://www.ahajournals.org",          # American Heart Association Journals
-        "https://www.cmaj.ca",                  # Canadian Medical Association Journal (often read in the US)
-        "https://www.plos.org",                 # PLOS (Public Library of Science)
-        "https://www.nature.com/medicine",      # Nature Medicine
-        "https://www.sciencemag.org",           # Science (medicine-related articles)
-        "https://www.cell.com",                 # Cell (for biomedical research)
-        "https://www.nejm.org",                 # Duplicate intentional for illustration (update/remove as needed)
-        "https://www.medicalnewstoday.com",     # Medical News Today
-        "https://www.webmd.com",                # WebMD (health information)
-        "https://www.mayoclinic.org",           # Mayo Clinic
-        "https://www.uptodate.com",             # UpToDate (clinical information)
-        "https://www.medpagetoday.com",         # MedPage Today
-        "https://www.medicaldaily.com"          # Medical Daily
+        "https://www.medicalnewstoday.com/",                   # Medical News Today
+        "https://www.medscape.com/",                             # Medscape
+        "https://www.healthline.com/health-news?ref=global",      # Healthline
+        "https://www.nytimes.com/section/health",                # NYT Health
+        "https://www.statnews.com/"                              # STAT News
     ],
-    "China": [
-        "http://www.cmj.org",                                # Chinese Medical Journal
-        "http://www.chinajournalofinternalmedicine.com",     # Placeholder
-        "http://www.chinamedicine.org",                      # Placeholder
-        "http://www.cma.org.cn",                             # Chinese Medical Association (placeholder)
-        "http://www.chinajournal.net",                       # Placeholder
-        "http://www.medscimonit.com",                        # Medical Science Monitor (if available in Chinese)
-        "http://www.chinajournalofclinicalpharmacology.com", # Placeholder
-        "http://www.chinajournalofneurology.com",            # Placeholder
-        "http://www.chinajournalofcardiology.com",           # Placeholder
-        "http://www.chinajournalofsurgery.com",              # Placeholder
-        "http://www.chinajournalofpediatrics.com",           # Placeholder
-        "http://www.chinajournalofdermatology.com",          # Placeholder
-        "http://www.chinajournalofendocrinology.com",        # Placeholder
-        "http://www.chinajournalofobstetrics.com",           # Placeholder
-        "http://www.chinajournalofoncology.com",            # Placeholder
-        "http://www.chinajournalofradiology.com",           # Placeholder
-        "http://www.chinajournalofpathology.com",           # Placeholder
-        "http://www.chinajournalofimmunology.com",          # Placeholder
-        "http://www.chinajournalofpharmacology.com",        # Placeholder
-        "http://www.chinajournalofepidemiology.com"         # Placeholder
+    "UK/Europe": [
+        "https://www.sciencemediacentre.org/",                   # Science Media Centre
+        "https://www.sciencedaily.com/news/top/health/",         # ScienceDaily – Health News
+        "https://www.who.int/",                                  # WHO
+        "https://www.nhs.uk/",                                   # NHS
+        "https://www.healtheuropa.eu/",                          # Healtheuropa
+        "https://www.theconversation.com/",                      # The Conversation
+        "https://www.bbc.com/news/health",                       # BBC News – Health
+        "https://www.cochranelibrary.com/",                      # Cochrane Library
+        "https://www.news-medical.net/"                          # News Medical
+    ],
+    "New Zealand": [
+        "https://www.health.govt.nz/"                            # Ministry of Health New Zealand
     ],
     "Japan": [
-        "https://www.jmaj.jp",              # Japanese Medical Association Journal
-        "https://www.jstage.jst.go.jp",       # J-STAGE (platform for Japanese journals)
-        "https://www.medicaljournal.jp",      # Placeholder for a Japanese medical publication site
-        "https://www.jpnmedassoc.org",        # Japanese Medical Association (placeholder)
-        "https://www.journalofjapanesemedicine.jp",  # Placeholder
-        "https://www.japansurgery.org",       # Placeholder
-        "https://www.japanpediatrics.org",    # Placeholder
-        "https://www.japancardiology.jp",     # Placeholder
-        "https://www.japancancer.org",        # Placeholder
-        "https://www.japanneurology.jp",      # Placeholder
-        "https://www.japandermatology.jp",      # Placeholder
-        "https://www.japanendocrinology.jp",    # Placeholder
-        "https://www.japanobstetrics.org",      # Placeholder
-        "https://www.japanorthopedics.jp",      # Placeholder
-        "https://www.japansurgeryjournal.jp",   # Placeholder
-        "https://www.japanclinicalres.org",     # Placeholder
-        "https://www.japanpharmacology.jp",     # Placeholder
-        "https://www.japanscienceofmedicine.jp",# Placeholder
-        "https://www.japanimmunology.jp",       # Placeholder
-        "https://www.japanradiology.jp"         # Placeholder
+        "https://www.m3.com/",                                   # M3.com
+        "https://www.jmaj.jp/",                                  # JMA Journal
+        "https://www3.nhk.or.jp/nhkworld/en/section/health/"      # NHK World – Health
     ],
-    "Europe": [
-        "https://www.bmj.com",              # British Medical Journal
-        "https://www.thelancet.com",          # The Lancet
-        "https://www.ejin.org",              # European Journal of Internal Medicine (placeholder)
-        "https://www.europeanheartjournal.com",  # Placeholder for European journals
-        "https://www.europeanjournalofmedicine.com", # Placeholder
-        "https://www.europeanchildrensjournal.com",   # Placeholder
-        "https://www.europeanneurology.com",          # Placeholder
-        "https://www.europeancancerjournal.com",      # Placeholder
-        "https://www.europeanendocrinology.com",       # Placeholder
-        "https://www.europeansurgery.com",            # Placeholder
-        "https://www.europeanpsychiatry.com",           # Placeholder
-        "https://www.europeaninfectiousdiseases.com",   # Placeholder
-        "https://www.europeanobstetrics.com",           # Placeholder
-        "https://www.europeancardiology.com",           # Placeholder
-        "https://www.europeandermatology.com",          # Placeholder
-        "https://www.europeanimmunology.com",           # Placeholder
-        "https://www.europeanhematology.com",          # Placeholder
-        "https://www.europeanpharmacology.com",         # Placeholder
-        "https://www.europeanradiology.com",            # Placeholder
-        "https://www.europeanpathology.com"             # Placeholder
-    ],
-    "Turkey": [
-        "https://www.tmmdergisi.org",         # Example Turkish Medical Journal
-        "https://www.turkishmedicaljournal.com",  # Placeholder
-        "https://www.journalofturkishmedicine.org", # Placeholder
-        "https://www.turkishjournals.com",      # Placeholder
-        "https://www.medicaljournalturkey.com", # Placeholder
-        "https://www.turkeymedicalnews.com",    # Placeholder
-        "https://www.turkeyhealthjournal.com",  # Placeholder
-        "https://www.ankaramedicaljournal.com", # Placeholder
-        "https://www.istanbulmedicaljournal.com",# Placeholder
-        "https://www.turkeycardiology.com",     # Placeholder
-        "https://www.turkeyneurology.com",      # Placeholder
-        "https://www.turkeyoncology.com",       # Placeholder
-        "https://www.turkeypediatrics.com",     # Placeholder
-        "https://www.turkeydermatology.com",    # Placeholder
-        "https://www.turkeyendocrinology.com",  # Placeholder
-        "https://www.turkeyimmunology.com",     # Placeholder
-        "https://www.turkeysurgery.com",        # Placeholder
-        "https://www.turkeyradiology.com",      # Placeholder
-        "https://www.turkeypathology.com",      # Placeholder
-        "https://www.turkeyinfectiousdiseases.com" # Placeholder
-    ],
-    "Korea": [
-        "https://www.kjms.org",             # Korean Journal of Medical Science
-        "https://www.jkma.org",              # Journal of the Korean Medical Association
-        "https://www.kiom.org",              # Placeholder for another Korean medical site
-        "https://www.koreamed.org",          # Placeholder
-        "https://www.koreamedicine.com",     # Placeholder
-        "https://www.koreanhealthjournal.com", # Placeholder
-        "https://www.koreancardiology.com",   # Placeholder
-        "https://www.koreanneurology.com",      # Placeholder
-        "https://www.koreansurgery.com",       # Placeholder
-        "https://www.koreapediatrics.com",     # Placeholder
-        "https://www.koreancancerjournal.com", # Placeholder
-        "https://www.koreanendocrinology.com",  # Placeholder
-        "https://www.koreandermatology.com",     # Placeholder
-        "https://www.koreanimmunology.com",      # Placeholder
-        "https://www.koreanpathology.com",       # Placeholder
-        "https://www.koreaninfectiousdiseases.com", # Placeholder
-        "https://www.koreanpharmacology.com",    # Placeholder
-        "https://www.koreanradiology.com",       # Placeholder
-        "https://www.koreanobstetrics.com",        # Placeholder
-        "https://www.koreanpsychiatry.com"         # Placeholder
-    ],
-    "Latin America": [
-        "https://www.scielo.org",            # SciELO
-        "https://www.revistas.usp.br",       # Journals from the University of São Paulo
-        "https://www.medicaljournalla.com",  # Placeholder for a Latin American medical publication
-        "https://www.latinamericamedicine.com",  # Placeholder
-        "https://www.latinamericajournalofmedicine.com", # Placeholder
-        "https://www.latinamericaclinicaljournal.com",   # Placeholder
-        "https://www.latinamericaneurology.com",         # Placeholder
-        "https://www.latinamericacardiology.com",        # Placeholder
-        "https://www.latinamericacancerjournal.com",     # Placeholder
-        "https://www.latinamericapharmacology.com",      # Placeholder
-        "https://www.latinamericadiagnosticjournal.com", # Placeholder
-        "https://www.latinamericahospitalmedicine.com",  # Placeholder
-        "https://www.latinamericasurgery.com",           # Placeholder
-        "https://www.latinamericapediatrics.com",        # Placeholder
-        "https://www.latinamericadermatology.com",       # Placeholder
-        "https://www.latinamericaendocrinology.com",     # Placeholder
-        "https://www.latinamericainfectiousdiseases.com",  # Placeholder
-        "https://www.latinamericadiagnosticimaging.com",   # Placeholder
-        "https://www.latinamericatherapy.com",           # Placeholder
-        "https://www.latinamericajournalofhealth.com"    # Placeholder
+    "China": [
+        "https://www.dxy.cn/",                                   # DXY.cn
+        "https://www.haodf.com/"                                 # HaoDF (Good Doctor)
     ]
 }
 
